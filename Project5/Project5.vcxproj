@@ -92,7 +92,7 @@
     <IncludePath>E:\Work\Plymouth\Soft356\SampleCode\lib;C:\Users\sgaudl\Documents\projects\Open-GL-Samples\lib;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>E:\Work\Plymouth\Soft356\SampleCode\lib;C:\Users\sgaudl\Documents\projects\Open-GL-Samples\lib;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\tseow\Documents\GitHub\Model-Loader-CW2;E:\Work\Plymouth\Soft356\SampleCode\lib;C:\Users\sgaudl\Documents\projects\Open-GL-Samples\lib;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>E:\Work\Plymouth\Soft356\SampleCode\lib;C:\Users\sgaudl\Documents\projects\Open-GL-Samples\lib;$(IncludePath)</IncludePath>

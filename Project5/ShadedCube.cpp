@@ -15,6 +15,12 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <algorithm>
+
+using namespace std;
 
 // to use this example you will need to download the header files for GLM put them into a folder which you will reference in
 // properties -> VC++ Directories -> libraries
@@ -28,6 +34,289 @@ GLuint texture1;
 
 GLuint shader;
 
+GLuint NumVertices = 36;
+
+//----------------------------------------------------------------------------
+//
+// loadfile
+//
+
+void loadfile(string fileName, vector<glm::vec3>& out_vertices, vector<glm::vec2>& out_uvs, vector<glm::vec3>& out_normals)
+{
+
+
+	string line;
+	ifstream myFile("media/" + fileName + ".obj");
+
+
+	vector<string> fileData;
+
+	int verticesCount = 0;
+	int texture_coordCount = 0;
+
+	vector< unsigned int > vertexIndices, uvIndices, normalIndices;
+	vector<glm::vec3> temp_vertices;
+	vector<glm::vec2> temp_uvs;
+	vector<glm::vec3> temp_normals;
+	vector<GLushort> elements;
+
+
+	int vCount = 0;
+
+	if (myFile.is_open())
+	{
+
+
+		while (getline(myFile, line))
+		{
+			//cout << line << endl;
+
+			if (line.substr(0, 2) == "v ") //Vertices
+			{
+				glm::vec3 vertex;
+				istringstream s(line.substr(2));
+				s >> vertex.x; s >> vertex.y; s >> vertex.z;
+				temp_vertices.push_back(vertex);
+
+			}
+			else if (line.substr(0, 2) == "vt") //Textures
+			{
+
+				glm::vec2 vertex;
+				istringstream s(line.substr(3));
+				s >> vertex.x; s >> vertex.y;
+				temp_uvs.push_back(vertex);
+			}
+			else if (line.substr(0, 2) == "vn") //Normals
+			{
+
+				glm::vec3 vertex;
+				istringstream s(line.substr(2));
+				s >> vertex.x; s >> vertex.y; s >> vertex.z;
+				temp_normals.push_back(vertex);
+			}
+			else if (line.substr(0, 2) == "f ") //Face Element
+			{
+				int counter = count(line.begin(), line.end(), '/');
+
+
+				replace(line.begin(), line.end(), '/', ' ');
+				istringstream fline(line.substr(2));
+				GLuint num;
+
+
+				GLint vTemp;
+				GLint tTemp;
+				GLint nTemp;
+
+				GLint vTemp1;
+				GLint tTemp1;
+				GLint nTemp1;
+
+				// Add & save 0
+				fline >> num;
+				vertexIndices.push_back(num);
+				vTemp = num;
+
+				fline >> num;
+				uvIndices.push_back(num);
+				tTemp = num;
+
+				fline >> num;
+				normalIndices.push_back(num);
+				nTemp = num;
+
+				//Add 1
+				fline >> num;
+				vertexIndices.push_back(num);
+
+				fline >> num;
+				uvIndices.push_back(num);
+
+				fline >> num;
+				normalIndices.push_back(num);
+
+
+				//Add & save 2
+				fline >> num;
+				vertexIndices.push_back(num);
+				vTemp1 = num;
+
+				fline >> num;
+				uvIndices.push_back(num);
+				tTemp1 = num;
+
+				fline >> num;
+				normalIndices.push_back(num);
+				nTemp1 = num;
+
+
+				if (counter == 8) // If 8, it means there are 4 vertices for the face element
+				{
+
+					////Add 0
+					vertexIndices.push_back(vTemp);
+					uvIndices.push_back(tTemp);
+					normalIndices.push_back(nTemp);
+
+					////Add 2
+					vertexIndices.push_back(vTemp1);
+					uvIndices.push_back(tTemp1);
+					normalIndices.push_back(nTemp1);
+
+					//add 3
+					fline >> num;
+					vertexIndices.push_back(num);
+					fline >> num;
+					uvIndices.push_back(num);
+					fline >> num;
+					normalIndices.push_back(num);
+				}
+
+			}
+
+		}
+
+
+
+		for (unsigned int i = 0; i < vertexIndices.size(); i++) {
+
+
+			// Get the attributes thanks to the index
+			glm::vec3 vertex = temp_vertices[vertexIndices[i] - 1];
+			glm::vec2 uv = temp_uvs[uvIndices[i] - 1];
+			glm::vec3 normal = temp_normals[normalIndices[i] - 1];
+
+			// Put the attributes in buffers
+			out_vertices.push_back(vertex);
+			out_uvs.push_back(uv);
+			out_normals.push_back(normal);
+
+		}
+
+
+		cout << "\nOBJ File Read\n";
+	}
+	else {
+		cout << "\nFile not found in media/";
+	}
+
+	myFile.close();
+}
+
+
+//----------------------------------------------------------------------------
+//
+// loadMTL
+//
+
+void loadMTL(string fileName, glm::vec4& colour, glm::vec3& out_diffuse, glm::vec3& out_specular, GLfloat& out_specularExponent, string& textureName) {
+
+	glm::vec4 ambient; //Ka, RGB Colour
+	glm::vec3 diffuse; //Kd
+	glm::vec3 specular; //Ks
+	GLfloat specularExponent; //Ns
+	GLfloat transparency; //d
+	string texture; //map_Kd, map_d
+	const char* tex;
+
+	string line;
+	ifstream myMTLFile("media/" + fileName + ".mtl");
+
+	if (myMTLFile.is_open())
+	{
+
+
+		while (getline(myMTLFile, line))
+		{
+			//cout << line << endl;
+
+			if (line.substr(0, 2) == "Ka")
+			{
+				istringstream s(line.substr(2));
+				s >> ambient.x; s >> ambient.y; s >> ambient.z; ambient.w = 1.0;
+			}
+			else if (line.substr(0, 2) == "d ")
+			{
+				istringstream s(line.substr(2));
+				s >> ambient.w;
+			}
+			else if (line.substr(0, 2) == "Kd")
+			{
+				istringstream s(line.substr(2));
+				s >> diffuse.x; s >> diffuse.y; s >> diffuse.z;
+			}
+			else if (line.substr(0, 2) == "Ks")
+			{
+				istringstream s(line.substr(2));
+				s >> specular.x; s >> specular.y; s >> specular.z;
+			}
+			else if (line.substr(0, 2) == "Ns")
+			{
+				istringstream s(line.substr(2));
+				s >> specularExponent;
+			}
+			else if (line.substr(0, 6) == "map_Kd")
+			{
+				istringstream s(line.substr(7));
+				texture = s.str();
+
+			}
+
+		}
+
+		colour = ambient;
+		string texPath = "media/textures/" + texture;
+		textureName = texPath;
+		out_diffuse = diffuse;
+		out_specular = specular;
+		out_specularExponent = specularExponent;
+		cout << "\nMTL File Read\n";
+	}
+	else {
+		cout << ".mtl file not found" << endl;
+	}
+
+	myMTLFile.close();
+
+}
+
+//----------------------------------------------------------------------------
+//
+// loadTexture
+//
+void loadTexture(GLuint& texture, std::string texturepath)
+{
+	/// load and create a texture 
+	// -------------------------
+	
+	// texture 1
+	// ---------
+	glGenTextures(1, &texture1);
+	glBindTexture(GL_TEXTURE_2D, texture1);
+	// set the texture wrapping parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	// set texture filtering parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	// load image, create texture and generate mipmaps
+	GLint width, height, nrChannels;
+	stbi_set_flip_vertically_on_load(false); // tell stb_image.h to flip loaded texture's on the y-axis.
+	unsigned char* data = stbi_load(texturepath.c_str(), &width, &height, &nrChannels, 0);
+	if (data)
+	{
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		glGenerateMipmap(GL_TEXTURE_2D);
+	}
+	else
+	{
+		std::cout << "Failed to load texture" << std::endl;
+	}
+	stbi_image_free(data);
+}
+
+
 //----------------------------------------------------------------------------
 //
 // init
@@ -36,7 +325,7 @@ GLuint shader;
 
 
 void
-init(void)
+init(vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, vector<glm::vec3>& normals, glm::vec4& colour, glm::vec3& diffuse, glm::vec3& specular, GLfloat& specularExponent, string& textureName)
 {
 	glGenVertexArrays(NumVAOs, VAOs);
 	glBindVertexArray(VAOs[Cube]);
@@ -56,7 +345,7 @@ init(void)
     //
 
     // ambient light
-	glm::vec4 ambient = glm::vec4(0.1f, 0.1f, 0.1f, 1.0f);
+	glm::vec4 ambient = colour;
 	//adding the Uniform to the shader
 	GLuint aLoc = glGetUniformLocation(shader, "ambient");
 	glUniform4fv(aLoc, 1, glm::value_ptr(ambient));
@@ -68,13 +357,13 @@ init(void)
 
 
 	// diffuse light
-	glm::vec3 diffuseLight = glm::vec3(0.5f, 0.2f, 0.7f);
+	glm::vec3 diffuseLight = diffuse;
 	GLuint dLightLoc = glGetUniformLocation(shader, "dLight");
 	glUniform3fv(dLightLoc, 1, glm::value_ptr(diffuseLight));
 	
 	// specular light
-	glm::vec3 specularLight = glm::vec3(0.7f);
-	GLfloat shininess = 256; //128 is max value
+	glm::vec3 specularLight = specular;
+	GLfloat shininess = specularExponent; //128 is max value
 	GLuint sLightLoc = glGetUniformLocation(shader, "sLight");
 	GLuint sShineLoc = glGetUniformLocation(shader, "sShine");
 	glUniform3fv(sLightLoc, 1, glm::value_ptr(specularLight));
@@ -83,92 +372,92 @@ init(void)
 
 	// setting up the cube
 
-	GLfloat vertices[] = {
-	-0.5f, -0.5f, -0.5f, //0 b l
-	 0.5f, -0.5f, -0.5f, //1 b r
-	 0.5f,  0.5f, -0.5f, //2 t r
-	 0.5f,  0.5f, -0.5f, //3 t r
-	-0.5f,  0.5f, -0.5f, //4 t l 
-	-0.5f, -0.5f, -0.5f, //5 b l
+	//GLfloat vertices[] = {
+	//-0.5f, -0.5f, -0.5f, //0 b l
+	// 0.5f, -0.5f, -0.5f, //1 b r
+	// 0.5f,  0.5f, -0.5f, //2 t r
+	// 0.5f,  0.5f, -0.5f, //3 t r
+	//-0.5f,  0.5f, -0.5f, //4 t l 
+	//-0.5f, -0.5f, -0.5f, //5 b l
 
-	-0.5f, -0.5f,  0.5f, //6 b l
-	 0.5f, -0.5f,  0.5f, //7 b r
-	 0.5f,  0.5f,  0.5f, //8 t r
-	 0.5f,  0.5f,  0.5f, //9 t r 
-	-0.5f,  0.5f,  0.5f, //10 t l
-	-0.5f, -0.5f,  0.5f, //11 b l
+	//-0.5f, -0.5f,  0.5f, //6 b l
+	// 0.5f, -0.5f,  0.5f, //7 b r
+	// 0.5f,  0.5f,  0.5f, //8 t r
+	// 0.5f,  0.5f,  0.5f, //9 t r 
+	//-0.5f,  0.5f,  0.5f, //10 t l
+	//-0.5f, -0.5f,  0.5f, //11 b l
 
-	-0.5f,  0.5f,  0.5f,
-	-0.5f,  0.5f, -0.5f,
-	-0.5f, -0.5f, -0.5f,
-	-0.5f, -0.5f, -0.5f,
-	-0.5f, -0.5f,  0.5f,
-	-0.5f,  0.5f,  0.5f,
+	//-0.5f,  0.5f,  0.5f,
+	//-0.5f,  0.5f, -0.5f,
+	//-0.5f, -0.5f, -0.5f,
+	//-0.5f, -0.5f, -0.5f,
+	//-0.5f, -0.5f,  0.5f,
+	//-0.5f,  0.5f,  0.5f,
 
-	 0.5f,  0.5f,  0.5f,
-	 0.5f,  0.5f, -0.5f,
-	 0.5f, -0.5f, -0.5f,
-	 0.5f, -0.5f, -0.5f,
-	 0.5f, -0.5f,  0.5f,
-	 0.5f,  0.5f,  0.5f,
+	// 0.5f,  0.5f,  0.5f,
+	// 0.5f,  0.5f, -0.5f,
+	// 0.5f, -0.5f, -0.5f,
+	// 0.5f, -0.5f, -0.5f,
+	// 0.5f, -0.5f,  0.5f,
+	// 0.5f,  0.5f,  0.5f,
 
-	-0.5f, -0.5f, -0.5f, // b l b
-	 0.5f, -0.5f, -0.5f, // b r b
-	 0.5f, -0.5f,  0.5f, // b r f
-	 0.5f, -0.5f,  0.5f, // b r b
-	-0.5f, -0.5f,  0.5f, // b l f
-	-0.5f, -0.5f, -0.5f, // b l b
+	//-0.5f, -0.5f, -0.5f, // b l b
+	// 0.5f, -0.5f, -0.5f, // b r b
+	// 0.5f, -0.5f,  0.5f, // b r f
+	// 0.5f, -0.5f,  0.5f, // b r b
+	//-0.5f, -0.5f,  0.5f, // b l f
+	//-0.5f, -0.5f, -0.5f, // b l b
 
-	-0.5f,  0.5f, -0.5f,
-	 0.5f,  0.5f, -0.5f,
-	 0.5f,  0.5f,  0.5f,
-	 0.5f,  0.5f,  0.5f,
-	-0.5f,  0.5f,  0.5f,
-	-0.5f,  0.5f, -0.5f,
-	};
+	//-0.5f,  0.5f, -0.5f,
+	// 0.5f,  0.5f, -0.5f,
+	// 0.5f,  0.5f,  0.5f,
+	// 0.5f,  0.5f,  0.5f,
+	//-0.5f,  0.5f,  0.5f,
+	//-0.5f,  0.5f, -0.5f,
+	//};
 
-	GLfloat normals[]{
-	0.0f,  0.0f, -1.0f,
-	0.0f,  0.0f, -1.0f,
-	0.0f,  0.0f, -1.0f,
-	0.0f,  0.0f, -1.0f,
-	0.0f,  0.0f, -1.0f,
-	0.0f,  0.0f, -1.0f,
+	//GLfloat normals[]{
+	//0.0f,  0.0f, -1.0f,
+	//0.0f,  0.0f, -1.0f,
+	//0.0f,  0.0f, -1.0f,
+	//0.0f,  0.0f, -1.0f,
+	//0.0f,  0.0f, -1.0f,
+	//0.0f,  0.0f, -1.0f,
 
-	0.0f,  0.0f, 1.0f,
-	0.0f,  0.0f, 1.0f,
-	0.0f,  0.0f, 1.0f,
-	0.0f,  0.0f, 1.0f,
-	0.0f,  0.0f, 1.0f,
-	0.0f,  0.0f, 1.0f,
+	//0.0f,  0.0f, 1.0f,
+	//0.0f,  0.0f, 1.0f,
+	//0.0f,  0.0f, 1.0f,
+	//0.0f,  0.0f, 1.0f,
+	//0.0f,  0.0f, 1.0f,
+	//0.0f,  0.0f, 1.0f,
 
-	-1.0f,  0.0f,  0.0f,
-	-1.0f,  0.0f,  0.0f,
-	-1.0f,  0.0f,  0.0f,
-	-1.0f,  0.0f,  0.0f,
-	-1.0f,  0.0f,  0.0f,
-	-1.0f,  0.0f,  0.0f,
-	
-	1.0f,  0.0f,  0.0f,
-	1.0f,  0.0f,  0.0f,
-	1.0f,  0.0f,  0.0f,
-	1.0f,  0.0f,  0.0f,
-	1.0f,  0.0f,  0.0f,
-	1.0f,  0.0f,  0.0f,
+	//-1.0f,  0.0f,  0.0f,
+	//-1.0f,  0.0f,  0.0f,
+	//-1.0f,  0.0f,  0.0f,
+	//-1.0f,  0.0f,  0.0f,
+	//-1.0f,  0.0f,  0.0f,
+	//-1.0f,  0.0f,  0.0f,
+	//
+	//1.0f,  0.0f,  0.0f,
+	//1.0f,  0.0f,  0.0f,
+	//1.0f,  0.0f,  0.0f,
+	//1.0f,  0.0f,  0.0f,
+	//1.0f,  0.0f,  0.0f,
+	//1.0f,  0.0f,  0.0f,
 
-	0.0f, -1.0f,  0.0f,
-	0.0f, -1.0f,  0.0f,
-	0.0f, -1.0f,  0.0f,
-	0.0f, -1.0f,  0.0f,
-	0.0f, -1.0f,  0.0f,
-	0.0f, -1.0f,  0.0f,
+	//0.0f, -1.0f,  0.0f,
+	//0.0f, -1.0f,  0.0f,
+	//0.0f, -1.0f,  0.0f,
+	//0.0f, -1.0f,  0.0f,
+	//0.0f, -1.0f,  0.0f,
+	//0.0f, -1.0f,  0.0f,
 
-	0.0f,  1.0f,  0.0f,
-	0.0f,  1.0f,  0.0f,
-	0.0f,  1.0f,  0.0f,
-	0.0f,  1.0f,  0.0f,
-	0.0f,  1.0f,  0.0f,
-	0.0f,  1.0f,  0.0f};
+	//0.0f,  1.0f,  0.0f,
+	//0.0f,  1.0f,  0.0f,
+	//0.0f,  1.0f,  0.0f,
+	//0.0f,  1.0f,  0.0f,
+	//0.0f,  1.0f,  0.0f,
+	//0.0f,  1.0f,  0.0f};
 
 	GLuint indices[][3] = {  // note that we start from 0!
 		{0, 1, 2},  // first Triangle front
@@ -190,7 +479,7 @@ init(void)
 		{33, 34, 35 }   // second Triangle
 	};
 
-	GLfloat  colours[][4] = {
+	/*GLfloat  colours[][4] = {
 		{ 1.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f },
 	    { 1.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f }, { 1.0f, 0.0f, 0.0f, 1.0f },
 	    
@@ -209,8 +498,8 @@ init(void)
 		{ 0.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f },
 		{ 0.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f }, { 0.0f, 1.0f, 1.0f, 1.0f },
 		
-	};
-	GLfloat  texture_coords[] = {
+	};*/
+	/*GLfloat  texture_coords[] = {
 		0.0f, 0.0f,
 		1.0f,0.0f,
 		1.0f, 1.0f,
@@ -252,15 +541,23 @@ init(void)
 		1.0f, 1.0f,
 		0.0f, 1.0f,
 		0.0f, 0.0f
-	};
+	};*/
+
+	 NumVertices = vertices.size();
+	vector<glm::vec4> color;
+	for (size_t i = 0; i < NumVertices; i++)
+	{
+		color.push_back(colour);
+	}
 
 	glGenBuffers(NumBuffers, Buffers);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, Buffers[Triangles]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+	//glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Buffers[Indices]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
+	//glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, Buffers[Indices]);
+	//glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
 	
 
@@ -269,7 +566,8 @@ init(void)
 	
 	//Colour Binding
 	glBindBuffer(GL_ARRAY_BUFFER, Buffers[Colours]);
-	glBufferStorage(GL_ARRAY_BUFFER, sizeof(colours), colours, 0);
+	glBufferData(GL_ARRAY_BUFFER, color.size() * sizeof(glm::vec4), &color[0], GL_STATIC_DRAW);
+	//glBufferStorage(GL_ARRAY_BUFFER, sizeof(colours), colours, 0);
 
 	glVertexAttribPointer(Colours, 4, GL_FLOAT,
 		GL_FALSE, 0, BUFFER_OFFSET(0));
@@ -277,47 +575,21 @@ init(void)
 
 	//Colour Binding
 	glBindBuffer(GL_ARRAY_BUFFER, Buffers[Normals]);
-	glBufferStorage(GL_ARRAY_BUFFER, sizeof(normals), normals, 0);
-
+	glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
 
 	glVertexAttribPointer(Normals, 3, GL_FLOAT,
 		GL_FALSE, 0, BUFFER_OFFSET(0));
 
 	//Texture Binding
 	glBindBuffer(GL_ARRAY_BUFFER, Buffers[Textures]);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(texture_coords), texture_coords, GL_STATIC_DRAW);
-	glVertexAttribPointer(Textures, 2, GL_FLOAT,
+	glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);	glVertexAttribPointer(Textures, 2, GL_FLOAT,
 		GL_FALSE, 0, BUFFER_OFFSET(0));
+
+	
 
 	// load and create a texture 
 	// -------------------------
-	
-	// texture 1
-	// ---------
-	glGenTextures(1, &texture1);
-	glBindTexture(GL_TEXTURE_2D, texture1);
-	// set the texture wrapping parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	// set texture wrapping to GL_REPEAT (default wrapping method)
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	// set texture filtering parameters
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	// load image, create texture and generate mipmaps
-	GLint width, height, nrChannels;
-	stbi_set_flip_vertically_on_load(false); // tell stb_image.h to flip loaded texture's on the y-axis.
-	unsigned char* data = stbi_load("media/textures/awesomeface.png", &width, &height, &nrChannels, 0);
-	if (data)
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-		glGenerateMipmap(GL_TEXTURE_2D);
-	}
-	else
-	{
-		std::cout << "Failed to load texture" << std::endl;
-	}
-	stbi_image_free(data);
-
-
+	loadTexture(texture1, textureName);
 	glUniform1i(glGetUniformLocation(shader, "texture1"), 0);
 
 
@@ -369,13 +641,13 @@ display(GLfloat delta)
 	glClear(GL_COLOR_BUFFER_BIT);
 
 	// bind textures on corresponding texture units
-	glFrontFace(GL_CW);
-	glCullFace(GL_BACK);
+	//glFrontFace(GL_CW);
+	//glCullFace(GL_BACK);
 	glEnable(GL_CULL_FACE);
 	// creating the model matrix
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
-	model = glm::rotate(model, glm::radians(delta), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::rotate(model, glm::radians(delta), glm::vec3(1.0f, 0.5f, 0.5f));
 
 
 	// creating the view matrix
@@ -401,8 +673,8 @@ display(GLfloat delta)
 
 	glBindVertexArray(VAOs[Cube]);
 	glBindTexture(GL_TEXTURE_2D, texture1);
-	glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
-	
+	//glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 }
 
 //----------------------------------------------------------------------------
@@ -414,6 +686,23 @@ display(GLfloat delta)
 int
 main(int argc, char** argv)
 {
+	vector<glm::vec3> vertices;
+	vector<glm::vec2> uvs;
+	vector<glm::vec3> normals;
+	glm::vec4 colour;
+	string textureName;
+	glm::vec3 diffuse;
+	glm::vec3 specular;
+	GLfloat specularExponent;
+
+
+		cout << "Enter Object to load: \n";
+		string path; // = "Creeper";
+		cin >> path;
+
+		loadfile(path, vertices, uvs, normals);
+		loadMTL(path, colour, diffuse, specular, specularExponent, textureName);
+
 	glfwInit();
 
 	GLFWwindow* window = glfwCreateWindow(800, 600, "Shaded Cube", NULL, NULL);
@@ -421,7 +710,7 @@ main(int argc, char** argv)
 	glfwMakeContextCurrent(window);
 	glewInit();
 
-	init();
+	init(vertices, uvs, normals, colour, diffuse, specular, specularExponent, textureName);
 	GLfloat timer= 0.0f;
 	while (!glfwWindowShouldClose(window))
 	{
@@ -431,7 +720,7 @@ main(int argc, char** argv)
 		display(timer);
 		glfwSwapBuffers(window);
 		glfwPollEvents();
-		timer += 0.1f;
+		timer += 1.0f;
 	}
 
 	glfwDestroyWindow(window);
