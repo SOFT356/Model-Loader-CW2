@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Camera.h" />
     <ClInclude Include="LoadShaders.h" />
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
@@ -92,7 +93,7 @@
     <IncludePath>E:\Work\Plymouth\Soft356\SampleCode\lib;C:\Users\sgaudl\Documents\projects\Open-GL-Samples\lib;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\tseow\Documents\GitHub\Model-Loader-CW2;E:\Work\Plymouth\Soft356\SampleCode\lib;C:\Users\sgaudl\Documents\projects\Open-GL-Samples\lib;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\tseow.SOCNET\Documents\GitHub\Model-Loader-CW2\Project5;C:\Users\tseow.SOCNET\Documents\GitHub\Model-Loader-CW2;C:\Users\tseow\Documents\GitHub\Model-Loader-CW2;E:\Work\Plymouth\Soft356\SampleCode\lib;C:\Users\sgaudl\Documents\projects\Open-GL-Samples\lib;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>E:\Work\Plymouth\Soft356\SampleCode\lib;C:\Users\sgaudl\Documents\projects\Open-GL-Samples\lib;$(IncludePath)</IncludePath>
