@@ -20,6 +20,7 @@
 #include <vector>
 #include <algorithm>
 
+
 //#include <Camera.h>
 
 using namespace std;
@@ -539,6 +540,13 @@ display(GLfloat delta)
 	glBindVertexArray(VAOs[Cube]);
 	glBindTexture(GL_TEXTURE_2D, texture1);
 	//glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
+
+	model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.5f));
+	model = glm::translate(model, glm::vec3(0.5f, 0.0f, 2.0f));
+	mv = view * model;
+	glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mv));
+	glUniformMatrix4fv(pLoc, 1, GL_FALSE, glm::value_ptr(projection));
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 }
 
