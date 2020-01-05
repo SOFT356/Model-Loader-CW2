@@ -738,16 +738,16 @@ main(int argc, char** argv)
 			path = "sphere";
 		}
 
-		cout << "\nChoose how many time this object will be spawned (1 - 9): \n";
+		cout << "\nChoose how many time this object will be spawned (1 - 10): \n";
 		GLuint objCount = 0;
 		cin >> objCount;
 		if (objCount < 1)
 		{
 			objCount = 1;
 		}
-		else if (objCount > 9)
+		else if (objCount > 10)
 		{
-			objCount = 9;
+			objCount = 10;
 		}
 
 		cout << "\nChoose shader type:" << endl;
@@ -795,8 +795,7 @@ main(int argc, char** argv)
 		{
 
 			processInput(window);
-			// uncomment to draw only wireframe 
-			// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
 
 			
 				display(timer, objCount);
