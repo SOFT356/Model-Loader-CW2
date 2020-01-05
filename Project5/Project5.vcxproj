@@ -23,7 +23,10 @@
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="media\cel.frag" />
+    <None Include="media\cel.vert" />
     <None Include="media\flat.frag" />
+    <None Include="media\flat.vert" />
     <None Include="media\triangles.frag" />
     <None Include="media\triangles.vert" />
     <None Include="packages.config" />
@@ -93,7 +96,7 @@
     <IncludePath>E:\Work\Plymouth\Soft356\SampleCode\lib;C:\Users\sgaudl\Documents\projects\Open-GL-Samples\lib;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>C:\Users\tseow.SOCNET\Documents\GitHub\Model-Loader-CW2\Project5\imgui;C:\Users\tseow.SOCNET\Documents\GitHub\Model-Loader-CW2\Project5;C:\Users\tseow.SOCNET\Documents\GitHub\Model-Loader-CW2;C:\Users\tseow\Documents\GitHub\Model-Loader-CW2;E:\Work\Plymouth\Soft356\SampleCode\lib;C:\Users\sgaudl\Documents\projects\Open-GL-Samples\lib;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\tseow.SOCNET\Documents\GitHub\Model-Loader-CW2\Project5;C:\Users\tseow.SOCNET\Documents\GitHub\Model-Loader-CW2\Project5\imgui;C:\Users\tseow.SOCNET\Documents\GitHub\Model-Loader-CW2;C:\Users\tseow\Documents\GitHub\Model-Loader-CW2;E:\Work\Plymouth\Soft356\SampleCode\lib;C:\Users\sgaudl\Documents\projects\Open-GL-Samples\lib;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <IncludePath>E:\Work\Plymouth\Soft356\SampleCode\lib;C:\Users\sgaudl\Documents\projects\Open-GL-Samples\lib;$(IncludePath)</IncludePath>

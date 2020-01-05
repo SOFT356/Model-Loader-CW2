@@ -33,6 +33,15 @@
     <None Include="media\flat.frag">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="media\cel.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="media\cel.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="media\flat.vert">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Image Include="media\textures\awesomeface.png">

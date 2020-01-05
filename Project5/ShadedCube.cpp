@@ -355,20 +355,42 @@ init(vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, vector<glm::vec3>& nor
 	glBindVertexArray(VAOs[Cube]);
 
 	string fragShader = "";
+	string vertShader = "";
 
-	if (shaderType == 1)
+	if (shaderType == 2)
 	{ 
+		//Texture - Flat
+		vertShader = "media/flat.vert";
+		fragShader = "media/triangles.frag";
+	}
+	else if (shaderType == 3)
+	{
+		//No Texture - Normal
+		vertShader = "media/triangles.vert";
 		fragShader = "media/flat.frag";
+	}
+	else if (shaderType == 4)
+	{
+		//No Texture - Flat
+		vertShader = "media/flat.vert";
+		fragShader = "media/flat.frag";
+	}
+	else if (shaderType == 5)
+	{
+		//Cel
+		vertShader = "media/cel.vert";
+		fragShader = "media/cel.frag";
 	}
 	else
 	{
+		//Textured - Normal
+		vertShader = "media/triangles.vert";
 		fragShader = "media/triangles.frag";
 	}
 
-
 	ShaderInfo  shaders[] =
 	{
-		{ GL_VERTEX_SHADER, "media/triangles.vert" },
+		{ GL_VERTEX_SHADER, vertShader.c_str() },
 		{ GL_FRAGMENT_SHADER, fragShader.c_str() },
 		{ GL_NONE, NULL }
 	};
@@ -414,8 +436,7 @@ init(vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, vector<glm::vec3>& nor
 		color.push_back(colour);
 	}
 
-
-
+	
 
 	glGenBuffers(NumBuffers, Buffers);
 	
@@ -502,7 +523,7 @@ init(vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, vector<glm::vec3>& nor
 //
 
 void
-display(GLfloat delta)
+display(GLfloat delta, GLuint objCount)
 {
 	static const float black[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 
@@ -520,8 +541,8 @@ display(GLfloat delta)
 	glEnable(GL_CULL_FACE);
 	// creating the model matrix
 	glm::mat4 model = glm::mat4(1.0f);
-	model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
-	model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+	model = glm::scale(model, glm::vec3(0.5f));
+	model = glm::rotate(model, glm::radians(delta), glm::vec3(0.2f, 1.0f, 0.7f));
 
 
 	// creating the view matrix
@@ -541,33 +562,40 @@ display(GLfloat delta)
 	int pLoc = glGetUniformLocation(shader, "p_matrix");
 	glUniformMatrix4fv(pLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-
-
 	// Cube 1
 	glBindVertexArray(VAOs[Cube]);
 	glBindTexture(GL_TEXTURE_2D, texture1);
 	//glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 
-	// Cube 2
-	glBindVertexArray(VAOs[Cube]);
-	model = glm::rotate(model, glm::radians(delta), glm::vec3(0.0f, 1.0f, 0.0f));
-	model = glm::translate(model, glm::vec3(0.5f, 0.0f, 2.0f));
-	mv = view * model;
+	glm::vec3 cubePositions[] = {
+	   glm::vec3(2.0f,  5.0f, -15.0f),
+	   glm::vec3(-1.5f, -2.2f, -2.5f),
+	   glm::vec3(-3.8f, -2.0f, -12.3f),
+	   glm::vec3(2.4f, -0.4f, -3.5f),
+	   glm::vec3(-1.7f,  3.0f, -7.5f),
+	   glm::vec3(1.3f, -2.0f, -2.5f),
+	   glm::vec3(1.5f,  2.0f, -2.5f),
+	   glm::vec3(1.5f,  0.2f, -1.5f),
+	   glm::vec3(-1.3f,  1.0f, -1.5f)
+	};
 
-	glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mv));
-	glUniformMatrix4fv(pLoc, 1, GL_FALSE, glm::value_ptr(projection));
-	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 
-	// Cube 2
-	glBindVertexArray(VAOs[Cube]);
-	model = glm::rotate(model, glm::radians(delta), glm::vec3(1.0f, 0.0f, 0.0f));
-	model = glm::translate(model, glm::vec3(0.5f, 0.0f, 2.0f));
-	mv = view * model;
+	for (unsigned int i = 1; i < objCount; i++)
+	{
+		// calculate the model matrix for each object and pass it to shader before drawing
+		glm::mat4 model = glm::mat4(1.0f); // make sure to initialize matrix to identity matrix first
+		model = glm::translate(model, cubePositions[i]);
+		model = glm::scale(model, glm::vec3(0.5f));
+		float angle = 20.0f * i;
+		model = glm::rotate(model, glm::radians(delta), glm::vec3(i, 1, 10 - i)); // Have each object spin slightly differently
+		glm::mat4 mv = view * model;
+		glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mv));
+		glUniformMatrix4fv(pLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
-	glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mv));
-	glUniformMatrix4fv(pLoc, 1, GL_FALSE, glm::value_ptr(projection));
-	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
+		glDrawArrays(GL_TRIANGLES, 0, NumVertices);
+	}
+
 
 
 
@@ -580,8 +608,8 @@ void processInput(GLFWwindow* window)
 
 
 	
+		float cameraSpeed = 3 * deltaTime;
 
-	float cameraSpeed = 2.5 * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 		cameraPos += cameraSpeed * cameraFront;
 	if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
@@ -592,10 +620,13 @@ void processInput(GLFWwindow* window)
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 
 
+	// View Wireframe
 	if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	if (glfwGetKey(window, GLFW_KEY_P) == GLFW_RELEASE)
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+
+
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -679,27 +710,72 @@ main(int argc, char** argv)
 
 	do {
 
+		cout << "******************" << endl;
+		cout << "*  MODEL LOADER  *" << endl;
+		cout << "******************" << endl;
+
+
+		cout << "\nChoose Object to load: \n";
+		cout << "\n1 - Creeper" << endl;
+		cout << "2 - Cone" << endl;
+		cout << "3 - Sphere" << endl;
+
+		string path = "";
+		//cin >> path;
+
+		GLuint objType = 0;
+		cin >> objType;
+		if (objType == 1)
+		{
+			path = "Creeper";
+		}
+		else if (objType == 2)
+		{
+			path = "cone";
+		}
+		else if (objType == 3)
+		{
+			path = "sphere";
+		}
+
+		cout << "\nChoose how many time this object will be spawned (1 - 9): \n";
+		GLuint objCount = 0;
+		cin >> objCount;
+		if (objCount < 1)
+		{
+			objCount = 1;
+		}
+		else if (objCount > 9)
+		{
+			objCount = 9;
+		}
+
 		cout << "\nChoose shader type:" << endl;
-		cout << "\n0 - Normal" << endl;
-		cout << "1 - Flat" << endl;
+		cout << "\n1 - Textured - Normal" << endl;
+		cout << "2 - Textured - Flat" << endl;
+		cout << "3 - No Texture - Normal" << endl;
+		cout << "4 - No Texture - Flat" << endl;
+		cout << "5 - Cel" << endl;
 
 		GLuint shaderType = -1; // = "Creeper";
 		
 		cin >> shaderType;
 
-		cout << "\nEnter Object to load: \n";
-		string path; // = "Creeper";
-		cin >> path;
-
+		
 	
-
 		loadfile(path, vertices, uvs, normals);
 		loadMTL(path, colour, diffuse, specular, specularExponent, textureName);
 
 		glfwInit();
 
 		GLFWwindow* window = glfwCreateWindow(800, 600, "Shaded Cube", NULL, NULL);
+		glClearColor(0, 0, 0, 0);
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		gluOrtho2D(-320, 319, -240, 239);
+		glClear(GL_COLOR_BUFFER_BIT);
 
+		glFlush();
 		glfwMakeContextCurrent(window);
 
 		glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
@@ -723,7 +799,7 @@ main(int argc, char** argv)
 			// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 			
-				display(timer);
+				display(timer, objCount);
 				glfwSwapBuffers(window);
 				glfwPollEvents();
 				timer += 1.0f;
@@ -734,10 +810,12 @@ main(int argc, char** argv)
 
 		cout << "\nFile Closed" << endl;
 
+		glDeleteVertexArrays(1, VAOs);
+		glDeleteBuffers(1, Buffers);
 		glfwDestroyWindow(window);
 
 		glfwTerminate();
-
+		system("CLS");
 		
 
 	} while (true);
