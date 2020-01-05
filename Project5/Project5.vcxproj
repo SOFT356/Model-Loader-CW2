@@ -23,6 +23,7 @@
     <ClInclude Include="stb_image.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="media\flat.frag" />
     <None Include="media\triangles.frag" />
     <None Include="media\triangles.vert" />
     <None Include="packages.config" />

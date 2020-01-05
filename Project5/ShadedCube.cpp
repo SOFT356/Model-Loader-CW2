@@ -28,7 +28,7 @@ using namespace std;
 // to use this example you will need to download the header files for GLM put them into a folder which you will reference in
 // properties -> VC++ Directories -> libraries
 
-enum VAO_IDs { Cube, NumVAOs = 1 };
+enum VAO_IDs { Cube, NumVAOs = 2 };
 enum Buffer_IDs { Triangles, Colours, Normals, Textures, Indices, NumBuffers = 5 };
 
 GLuint  VAOs[NumVAOs];
@@ -325,12 +325,13 @@ void loadTexture(GLuint& texture, std::string texturepath)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	// load image, create texture and generate mipmaps
 	GLint width, height, nrChannels;
-	stbi_set_flip_vertically_on_load(false); // tell stb_image.h to flip loaded texture's on the y-axis.
+	stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
 	unsigned char* data = stbi_load(texturepath.c_str(), &width, &height, &nrChannels, 0);
 	if (data)
 	{
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
 		glGenerateMipmap(GL_TEXTURE_2D);
+		cout << "Texture Loaded" << endl;
 	}
 	else
 	{
@@ -348,15 +349,27 @@ void loadTexture(GLuint& texture, std::string texturepath)
 
 
 void
-init(vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, vector<glm::vec3>& normals, glm::vec4& colour, glm::vec3& diffuse, glm::vec3& specular, GLfloat& specularExponent, string& textureName)
+init(vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, vector<glm::vec3>& normals, glm::vec4& colour, glm::vec3& diffuse, glm::vec3& specular, GLfloat& specularExponent, string& textureName, GLuint shaderType)
 {
 	glGenVertexArrays(NumVAOs, VAOs);
 	glBindVertexArray(VAOs[Cube]);
 
+	string fragShader = "";
+
+	if (shaderType == 1)
+	{ 
+		fragShader = "media/flat.frag";
+	}
+	else
+	{
+		fragShader = "media/triangles.frag";
+	}
+
+
 	ShaderInfo  shaders[] =
 	{
 		{ GL_VERTEX_SHADER, "media/triangles.vert" },
-		{ GL_FRAGMENT_SHADER, "media/triangles.frag" },
+		{ GL_FRAGMENT_SHADER, fragShader.c_str() },
 		{ GL_NONE, NULL }
 	};
 
@@ -400,6 +413,9 @@ init(vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, vector<glm::vec3>& nor
 	{
 		color.push_back(colour);
 	}
+
+
+
 
 	glGenBuffers(NumBuffers, Buffers);
 	
@@ -474,8 +490,9 @@ init(vector<glm::vec3>& vertices, vector<glm::vec2>& uvs, vector<glm::vec3>& nor
 
 	glEnableVertexAttribArray(Triangles);
 	glEnableVertexAttribArray(Colours); 
-	glEnableVertexAttribArray(Textures);
 	glEnableVertexAttribArray(Normals);
+	glEnableVertexAttribArray(Textures);
+	
 }
 
 
@@ -496,16 +513,6 @@ display(GLfloat delta)
 	deltaTime = currentFrame - lastFrame;
 	lastFrame = currentFrame;
 
-	/*glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-	glm::vec3 cameraTarget = glm::vec3(0.0f, 0.0f, 0.0f);
-	glm::vec3 cameraDirection = glm::normalize(cameraPos - cameraTarget);
-
-	glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f);
-	glm::vec3 cameraRight = glm::normalize(glm::cross(up, cameraDirection));
-	glm::vec3 cameraUp = glm::cross(cameraDirection, cameraRight);*/
-
-	
-
 
 	// bind textures on corresponding texture units
 	//glFrontFace(GL_CW);
@@ -514,7 +521,7 @@ display(GLfloat delta)
 	// creating the model matrix
 	glm::mat4 model = glm::mat4(1.0f);
 	model = glm::scale(model, glm::vec3(2.0f, 2.0f, 2.0f));
-	model = glm::rotate(model, glm::radians(delta), glm::vec3(1.0f, 0.5f, 0.5f));
+	model = glm::rotate(model, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 
 
 	// creating the view matrix
@@ -536,24 +543,43 @@ display(GLfloat delta)
 
 
 
-
+	// Cube 1
 	glBindVertexArray(VAOs[Cube]);
 	glBindTexture(GL_TEXTURE_2D, texture1);
 	//glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
 
-	model = glm::rotate(model, glm::radians(0.0f), glm::vec3(0.0f, 1.0f, 0.5f));
+	// Cube 2
+	glBindVertexArray(VAOs[Cube]);
+	model = glm::rotate(model, glm::radians(delta), glm::vec3(0.0f, 1.0f, 0.0f));
 	model = glm::translate(model, glm::vec3(0.5f, 0.0f, 2.0f));
 	mv = view * model;
+
 	glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mv));
 	glUniformMatrix4fv(pLoc, 1, GL_FALSE, glm::value_ptr(projection));
 	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
+
+	// Cube 2
+	glBindVertexArray(VAOs[Cube]);
+	model = glm::rotate(model, glm::radians(delta), glm::vec3(1.0f, 0.0f, 0.0f));
+	model = glm::translate(model, glm::vec3(0.5f, 0.0f, 2.0f));
+	mv = view * model;
+
+	glUniformMatrix4fv(mvLoc, 1, GL_FALSE, glm::value_ptr(mv));
+	glUniformMatrix4fv(pLoc, 1, GL_FALSE, glm::value_ptr(projection));
+	glDrawArrays(GL_TRIANGLES, 0, NumVertices);
+
+
+
 }
 
 void processInput(GLFWwindow* window)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
+
+
+	
 
 	float cameraSpeed = 2.5 * deltaTime;
 	if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
@@ -564,6 +590,12 @@ void processInput(GLFWwindow* window)
 		cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 		cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+
+
+	if (glfwGetKey(window, GLFW_KEY_P) == GLFW_PRESS)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	if (glfwGetKey(window, GLFW_KEY_P) == GLFW_RELEASE)
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 // glfw: whenever the window size changed (by OS or user resize) this callback function executes
@@ -641,47 +673,72 @@ main(int argc, char** argv)
 	glm::vec3 diffuse;
 	glm::vec3 specular;
 	GLfloat specularExponent;
+		
 
 
-		cout << "Enter Object to load: \n";
+
+	do {
+
+		cout << "\nChoose shader type:" << endl;
+		cout << "\n0 - Normal" << endl;
+		cout << "1 - Flat" << endl;
+
+		GLuint shaderType = -1; // = "Creeper";
+		
+		cin >> shaderType;
+
+		cout << "\nEnter Object to load: \n";
 		string path; // = "Creeper";
 		cin >> path;
+
+	
 
 		loadfile(path, vertices, uvs, normals);
 		loadMTL(path, colour, diffuse, specular, specularExponent, textureName);
 
-	glfwInit();
+		glfwInit();
 
-	GLFWwindow* window = glfwCreateWindow(800, 600, "Shaded Cube", NULL, NULL);
+		GLFWwindow* window = glfwCreateWindow(800, 600, "Shaded Cube", NULL, NULL);
 
-	glfwMakeContextCurrent(window);
+		glfwMakeContextCurrent(window);
 
-	glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-	glfwSetCursorPosCallback(window, mouse_callback);
-	glfwSetScrollCallback(window, scroll_callback);
+		glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+		glfwSetCursorPosCallback(window, mouse_callback);
+		glfwSetScrollCallback(window, scroll_callback);
 
-	// tell GLFW to capture our mouse
-	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+		// tell GLFW to capture our mouse
+		glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-	glewInit();
+		glewInit();
 
-	init(vertices, uvs, normals, colour, diffuse, specular, specularExponent, textureName);
-	GLfloat timer= 0.0f;
-	while (!glfwWindowShouldClose(window))
-	{
+		init(vertices, uvs, normals, colour, diffuse, specular, specularExponent, textureName, shaderType);
 
-		processInput(window);
+		bool isExit = false;
+		GLfloat timer = 0.0f;
+		while (!glfwWindowShouldClose(window))
+		{
 
-		// uncomment to draw only wireframe 
-		// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			processInput(window);
+			// uncomment to draw only wireframe 
+			// glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-		display(timer);
-		glfwSwapBuffers(window);
-		glfwPollEvents();
-		timer += 1.0f;
-	}
+			
+				display(timer);
+				glfwSwapBuffers(window);
+				glfwPollEvents();
+				timer += 1.0f;
 
-	glfwDestroyWindow(window);
+				
+		
+		}
 
-	glfwTerminate();
+		cout << "\nFile Closed" << endl;
+
+		glfwDestroyWindow(window);
+
+		glfwTerminate();
+
+		
+
+	} while (true);
 }
