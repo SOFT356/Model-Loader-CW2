@@ -1,7 +1,5 @@
 #version 450 core
 
-
-
 in vec3 lightDir;
 in vec3 normal;
 
