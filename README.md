@@ -35,7 +35,7 @@ Step 5: Now choose which shader you would like to use by entering the correspond
 <br>D - Right
 <br>Mouse - Look around
 <br>Scroll Wheel - Zoom in/out
-<b>Other:</b>
+<br><b>Other:</b>
 <br>P - Hold to view wireframe
 <br>ESC - Close render window
 
