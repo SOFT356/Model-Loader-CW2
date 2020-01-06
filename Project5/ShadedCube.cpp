@@ -601,12 +601,28 @@ display(GLfloat delta, GLuint objCount)
 
 }
 
-void processInput(GLFWwindow* window)
+void processInput(GLFWwindow* window, GLuint objCount)
 {
 	if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, true);
 
+	if (glfwGetKey(window, GLFW_KEY_J) == GLFW_PRESS)
+	{
+		objCount--;
+		if (objCount < 1)
+		{
+			objCount == 1;
+		}
+	}
 
+	if (glfwGetKey(window, GLFW_KEY_K) == GLFW_PRESS)
+	{
+		objCount++;
+		if (objCount > 10)
+		{
+			objCount == 10;
+		}
+	}
 	
 		float cameraSpeed = 3 * deltaTime;
 
@@ -710,6 +726,15 @@ main(int argc, char** argv)
 
 	do {
 
+		vertices.clear();
+		uvs.clear();
+		normals.clear();
+		colour = glm::vec4(0.0f);
+		string textureName = "";
+		glm::vec3 diffuse = glm::vec3(0.0f);
+		glm::vec3 specular = glm::vec3(0.0f);
+		GLfloat specularExponent = 0;
+
 		cout << "******************" << endl;
 		cout << "*  MODEL LOADER  *" << endl;
 		cout << "******************" << endl;
@@ -769,11 +794,7 @@ main(int argc, char** argv)
 		glfwInit();
 
 		GLFWwindow* window = glfwCreateWindow(800, 600, "Shaded Cube", NULL, NULL);
-		glClearColor(0, 0, 0, 0);
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		gluOrtho2D(-320, 319, -240, 239);
-		glClear(GL_COLOR_BUFFER_BIT);
+	
 
 		glFlush();
 		glfwMakeContextCurrent(window);
@@ -789,22 +810,23 @@ main(int argc, char** argv)
 
 		init(vertices, uvs, normals, colour, diffuse, specular, specularExponent, textureName, shaderType);
 
+		//Reset Camera
+		cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
+		cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
+		cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
 		bool isExit = false;
 		GLfloat timer = 0.0f;
 		while (!glfwWindowShouldClose(window))
 		{
 
-			processInput(window);
+			processInput(window, objCount);
 
-
-			
 				display(timer, objCount);
 				glfwSwapBuffers(window);
 				glfwPollEvents();
 				timer += 1.0f;
 
-				
-		
+
 		}
 
 		cout << "\nFile Closed" << endl;
@@ -812,6 +834,9 @@ main(int argc, char** argv)
 		glDeleteVertexArrays(1, VAOs);
 		glDeleteBuffers(1, Buffers);
 		glfwDestroyWindow(window);
+
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clean the screen and the depth buffer
+		glLoadIdentity(); // Reset The Projection Matrix
 
 		glfwTerminate();
 		system("CLS");
