@@ -20,7 +20,7 @@ Step 1: Locate the "SampleProjects.sln" file and open it (Note: you must have Vi
 
 Step 2: Click the green "Local Windows Debugger" button to start the program.
 
-Step 3: Choose which object you who like to load by entering the corresponding number and press enter.
+Step 3: Choose which object you would like to load by entering the corresponding number and press enter.
 
 Step 4: Choose how times you what to spawn this object then enter the amount (from 1 to 10) and press enter.
 
@@ -41,7 +41,7 @@ Step 5: Now choose which shader you would like to use by entering the correspond
 
 <h2>Video Walkthrough</h2>
 Here is a video walkthrough of the features
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=DxliVPOOwY0
+<br><a href="http://www.youtube.com/watch?feature=player_embedded&v=DxliVPOOwY0
 " target="_blank"><img src="http://img.youtube.com/vi/DxliVPOOwY0/0.jpg" 
 alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
 
@@ -163,7 +163,7 @@ void main()
 
 <h2>Code Walkthrough</h2>
 Here is a video walkthrough of the code
-<a href="http://www.youtube.com/watch?feature=player_embedded&v=2oAjKgI3bcw
+<br><a href="http://www.youtube.com/watch?feature=player_embedded&v=2oAjKgI3bcw
 " target="_blank"><img src="http://img.youtube.com/vi/2oAjKgI3bcw/0.jpg" 
 alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
 
