@@ -39,6 +39,12 @@ Step 5: Now choose which shader you would like to use by entering the correspond
 <br>P - Hold to view wireframe
 <br>ESC - Close render window
 
+<h2>Video Walkthrough</h2>
+Here is a video walkthrough of the features
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=DxliVPOOwY0
+" target="_blank"><img src="http://img.youtube.com/vi/DxliVPOOwY0/0.jpg" 
+alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
+
 
 
 <h2>Project Starting Point</h3>
@@ -152,18 +158,16 @@ void main()
 void main()
 {
     fColor = vec4(0.5, 0.4, 0.8, 1.0);
-}
-3(lightDir),n);
-
-	if (intensity > 0.95)
-		color = vec4(1.0,0.5,0.5,1.0);
-	else if (intensity > 0.5)
-		color = vec4(0.6,0.3,0.3,1.0);
-	else if (intensity > 0.25)
-		color = vec4(0.4,0.2,0.2,1.0);
-	else
-		color = vec4(0.2,0.1,0.1,1.0);
-	gl_FragColor = color;
-	
 }</pre>
+
+
+<h2>Code Walkthrough</h2>
+Here is a video walkthrough of the code
+<a href="http://www.youtube.com/watch?feature=player_embedded&v=2oAjKgI3bcw
+" target="_blank"><img src="http://img.youtube.com/vi/2oAjKgI3bcw/0.jpg" 
+alt="IMAGE ALT TEXT HERE" width="240" height="180" border="10" /></a>
+
+<h3>References</h3>
+https://learnopengl.com/
+https://www.lighthouse3d.com/tutorials/glsl-12-tutorial/toon-shading/
 
